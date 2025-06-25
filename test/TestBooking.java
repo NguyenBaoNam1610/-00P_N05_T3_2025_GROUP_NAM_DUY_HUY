@@ -1,8 +1,6 @@
-package test;
-import source.Booking;
-import source.Customer;
+
 public class TestBooking {
-    public static void main(String[] args) {
+    public static void test() {
         Booking booking = new Booking();
         booking.C_id = 1;
         booking.R_id = 3;

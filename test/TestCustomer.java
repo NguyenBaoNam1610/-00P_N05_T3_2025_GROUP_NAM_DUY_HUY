@@ -1,9 +1,7 @@
-package test;
 
-import source.Customer;
 
 public class TestCustomer {
-    public static void main(String[] args) {
+    public static void test() {
         Customer customer = new Customer();
         customer.id = 1;
         customer.name = "Nguyễn Văn A";
