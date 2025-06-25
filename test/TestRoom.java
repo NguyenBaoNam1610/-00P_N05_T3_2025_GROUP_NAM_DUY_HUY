@@ -1,9 +1,6 @@
-package test;
-
-import source.Room;
 
 public class TestRoom {
-    public static void main(String[] args) {
+    public static void test() {
         Room room = new Room();
         room.id = 1;
         room.type = "penhouse";
