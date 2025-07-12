@@ -1,9 +1,8 @@
-
-
+// File: CustomerProgram.java
 import java.util.ArrayList;
 import java.util.List;
 
-public class Customer {
+class Customer {
     private int id;
     private String name;
     private byte age;
@@ -11,7 +10,6 @@ public class Customer {
     private String cccd;
     private String sdt;
 
-    // Constructor
     public Customer(int id, String name, byte age, String address, String cccd, String sdt) {
         this.id = id;
         this.name = name;
@@ -36,7 +34,7 @@ public class Customer {
     public void setSdt(String sdt) { this.sdt = sdt; }
 }
 
-public class CustomerManager {
+class CustomerManager {
     private List<Customer> customers = new ArrayList<>();
     private int nextId = 1;
 
@@ -93,5 +91,28 @@ public class CustomerManager {
             return true;
         }
         return false;
+    }
+}
+
+public class CustomerProgram {
+    public static void main(String[] args) {
+        CustomerManager manager = new CustomerManager();
+        
+        // Thêm khách hàng
+        manager.addCustomer("Nguyễn Văn A", (byte)25, "Hà Nội", "123456789", "0987654321");
+        manager.addCustomer("Trần Thị B", (byte)30, "TP.HCM", "987654321", "0123456789");
+        
+        // Hiển thị tất cả
+        manager.displayAllCustomers();
+        
+        // Cập nhật thông tin
+        manager.updateCustomer(1, "Nguyễn Văn A Updated", (byte)26, "Hà Nội Updated", "123456789", "0987654321");
+        
+        // Xóa khách hàng
+        manager.deleteCustomer(2);
+        
+        // Hiển thị lại sau khi thay đổi
+        System.out.println("\nSau khi cập nhật và xóa:");
+        manager.displayAllCustomers();
     }
 }
