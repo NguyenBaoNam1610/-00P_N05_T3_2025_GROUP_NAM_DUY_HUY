@@ -2,6 +2,8 @@
 - Ứng dụng quản lý khách sạn
 # diagram
 <img width="673" height="507" alt="C,R,B relationshiop dinagram" src="https://github.com/user-attachments/assets/e7e9cd66-4e50-4d1e-bd2e-c5fad0196ede" />
+# Activity Diagram Customer
+<img width="7513" height="3601" alt="Activity Diagram Customer" src="https://github.com/user-attachments/assets/39c041d4-29a8-4f7f-a466-419bfe7fab11" />
 
 # Đối tượng
 - Khách hàng
