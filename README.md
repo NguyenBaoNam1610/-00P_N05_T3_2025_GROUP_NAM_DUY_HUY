@@ -9,11 +9,11 @@
 - Khách hàng
 - Phòng
 - GiaoDich
-  
+  <img src='anh/Untitled.pdf'>
 # Thuộc tính
 - Khách hàng: int ID, String Tên, Int Tuổi, String SĐT (10 ký tự), String CCCD (10 ký tự), String Địa chỉ, Date Ngày checkIn/checkOut, List ID phòng đã đặt, double Tổng đơn giá.
 - Phòng: int ID, String Loại phòng, double Giá phòng, Boolean Tình trạng phòng.
-
+- GiaoDich: int C_id, int R_id,String checkin, String checkout 
 # Thành viên
 - Phạm Thế Duy, MSV: 24100583(duyphamdevx)
 - Đỗ Văn Huy, MSV: 24100328(doHuy21-eng)
