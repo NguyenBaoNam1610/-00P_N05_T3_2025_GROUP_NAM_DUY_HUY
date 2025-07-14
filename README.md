@@ -8,7 +8,8 @@
 # Đối tượng
 - Khách hàng
 - Phòng
-
+- GiaoDich
+  
 # Thuộc tính
 - Khách hàng: int ID, String Tên, Int Tuổi, String SĐT (10 ký tự), String CCCD (10 ký tự), String Địa chỉ, Date Ngày checkIn/checkOut, List ID phòng đã đặt, double Tổng đơn giá.
 - Phòng: int ID, String Loại phòng, double Giá phòng, Boolean Tình trạng phòng.
