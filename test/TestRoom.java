@@ -1,16 +1,23 @@
 
 public class TestRoom {
     public static void test() {
-        Room room = new Room();
-        room.id = 1;
-        room.type = "penhouse";
-        room.price = 10000;
-        room.status = true;
+        RoomManager manager = new RoomManager();
 
-        System.out.println("Thông tin phòng: ");
-        System.out.println("Số phòng: " + room.id);
-        System.out.println("Kiểu phòng: " + room.type);
-        System.out.println("Giá phòng: " + room.price);
-        System.out.println("Trang thái: " + room.status);
+        // add room
+        manager.addRoom(new Room(1, "Single", 100, true));
+        manager.addRoom(new Room(2, "Double", 150, true));
+        manager.addRoom(new Room(3, "Suite", 300, false));
+
+        // Hiển thị tất cả các phòng
+        manager.showAllRooms();
+
+        // update
+        manager.updateRoom(2, "Deluxe", 180, true);
+
+        // delete
+        manager.deleteRoom(3);
+
+        // Hiển thị lại tất cả các phòng
+        manager.showAllRooms();
     }
 }
