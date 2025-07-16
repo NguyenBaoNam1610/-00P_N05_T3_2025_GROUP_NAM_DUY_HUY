@@ -5,12 +5,12 @@ import java.util.List;
 class Customer {
     private int id;
     private String name;
-    private byte age;
+    private int age;
     private String address;
     private String cccd;
     private String sdt;
 
-    public Customer(int id, String name, byte age, String address, String cccd, String sdt) {
+    public Customer(int id, String name, int age, String address, String cccd, String sdt) {
         this.id = id;
         this.name = name;
         this.age = age;
@@ -24,7 +24,7 @@ class Customer {
     public void setId(int id) { this.id = id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
-    public byte getAge() { return age; }
+    public int getAge() { return age; }
     public void setAge(byte age) { this.age = age; }
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
@@ -39,7 +39,7 @@ class CustomerManager {
     private int nextId = 1;
 
     // CREATE
-    public void addCustomer(String name, byte age, String address, String cccd, String sdt) {
+    public void addCustomer(String name, int age, String address, String cccd, String sdt) {
         Customer customer = new Customer(nextId++, name, age, address, cccd, sdt);
         customers.add(customer);
         System.out.println("Thêm khách hàng thành công!");
@@ -91,28 +91,5 @@ class CustomerManager {
             return true;
         }
         return false;
-    }
-}
-
-public class CustomerProgram {
-    public static void main(String[] args) {
-        CustomerManager manager = new CustomerManager();
-        
-        // Thêm khách hàng
-        manager.addCustomer("Nguyễn Văn A", (byte)25, "Hà Nội", "123456789", "0987654321");
-        manager.addCustomer("Trần Thị B", (byte)30, "TP.HCM", "987654321", "0123456789");
-        
-        // Hiển thị tất cả
-        manager.displayAllCustomers();
-        
-        // Cập nhật thông tin
-        manager.updateCustomer(1, "Nguyễn Văn A Updated", (byte)26, "Hà Nội Updated", "123456789", "0987654321");
-        
-        // Xóa khách hàng
-        manager.deleteCustomer(2);
-        
-        // Hiển thị lại sau khi thay đổi
-        System.out.println("\nSau khi cập nhật và xóa:");
-        manager.displayAllCustomers();
     }
 }
