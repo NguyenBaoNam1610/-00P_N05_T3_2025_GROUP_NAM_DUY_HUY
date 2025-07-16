@@ -1,16 +1,24 @@
 
 public class TestBooking {
     public static void test() {
-        Booking booking = new Booking();
-        booking.C_id = 1;
-        booking.R_id = 3;
-        booking.checkin = "25/06/2025";
-        booking.checkout = "30/06/2025";
+        BookingService book = new BookingService();
 
-        System.out.println("Thông tin đặt phòng:");
-        System.out.println("ID khách hàng: " + booking.C_id);
-        System.out.println("ID phòng: " + booking.R_id);
-        System.out.println("Ngày nhận phòng: " + booking.checkin);
-        System.out.println("Ngày trả phòng: " + booking.checkout);
+        //create booking
+        book.createBooking(new Booking(1, 5));
+        book.createBooking(new Booking(3,   6));
+
+        //read
+        System.out.println(book.getBookingByCustomerId(3));
+
+        //update
+        book.updateBooking(1, new Booking(2, 4));
+        System.out.println("Sau khi update c_id = 2, r_id = 4");
+        book.displayBooking();
+
+        //detele
+        book.deleteBooking(3);
+        System.out.println("Sau khi xóa booking có c_id = 3");
+        book.displayBooking();
+
     }
 }
