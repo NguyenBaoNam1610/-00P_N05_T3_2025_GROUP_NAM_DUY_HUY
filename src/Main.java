@@ -1,11 +1,9 @@
-//import java.util.Scanner;
-
 public class Main {
     CustomerManager customerManager = new CustomerManager();
     RoomManager roomManager = new RoomManager();
     BookingService bookingService = new BookingService();
 
-    //Đặt phòng cho khách
+    // Đặt phòng cho khách
     public boolean bookRoomForCustomer(int customerId, int roomId) {
         Customer c = customerManager.getCustomerById(customerId);
         Room r = roomManager.findRoomById(roomId);
@@ -21,5 +19,19 @@ public class Main {
         r.status = false;
         System.out.println("Đặt phòng thành công cho khách hàng " + c.getName());
         return true;
+    }
+
+    public void showAllBookings() {
+        List<Booking> bookings = bookingsService.getAllBookings();
+        if (bookings.isEmpty()) {
+            System.out.println("Chưa có booking nào.");
+            return;
+        }
+        for (Boonking b : bookings) {
+            Customer c = customerManager.getCustomerById(b.C_id);
+            Room r = roomManager.findRoomById(b.R_id);
+            System.out.println("Khách:" + (c != null ? c.getName() : "Không tìm thấy") +
+                    ", Phòng: " + (r != null ? r.type : "Không tìm thấy"));
+        }
     }
 }
