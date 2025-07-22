@@ -34,4 +34,24 @@ public class Main {
                     ", Phòng: " + (r != null ? r.type : "Không tìm thấy"));
         }
     }
+    public boolean cancelBookingBycustomer(int customerId) {
+    Booking b = bookingService.getBookingByCustomerId(customerId);
+    if (b == null) {
+        System.out.println("Khách hàng chưa có booking.");
+        return false;
+    }
+    Room r = roomManager.findRoomById(b.R_id);
+
+    if (bookingService.deleteBooking(customerId)) {
+        if (r != null) {
+            r.status = true;
+        }
+        System.out.println("Đã hủy booking của khách hàng ID: " + customerId);
+        return true;
+    }
+
+    System.out.println("Không thể hủy booking của khách hàng ID: " + customerId);
+    return false;
+}
+
 }
