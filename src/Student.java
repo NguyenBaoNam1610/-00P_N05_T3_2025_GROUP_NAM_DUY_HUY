@@ -1,24 +1,48 @@
-public class Student implements Comparable {
-public Student(String name, float gpa) {
-this.name = name;
-this.gpa = gpa;
-}
-public Student() {}
-//Object is the ancestor of every class
-public int compareTo(Object o) {
-//cast the correct type (Student)o
-if ( ((Student)o).gpa < gpa ) return 1;
-else if ( ((Student)o).gpa > gpa ) return -1;
-else return 0;
-}
-// Can this equals() be improved and be consistent??
-public boolean equals(Object o) {
-//cast the correct type (Student)o
-if (gpa == ((Student) o).gpa) return true;
-else return false;
-}
-public String getName() { return name;}
-public float getGpa() { return gpa;}
-private String name;
-private float gpa;
+import java.util.Objects;
+
+public class Student implements Comparable<Student> {
+    private String name;
+    private float gpa;
+
+    public Student(String name, float gpa) {
+        this.name = name;
+        this.gpa = gpa;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public float getGpa() {
+        return gpa;
+    }
+
+    @Override
+    public int compareTo(Student other) {
+        // So sánh GPA theo thứ tự giảm dần
+        int gpaComparison = Float.compare(other.gpa, this.gpa);
+        if (gpaComparison != 0) {
+            return gpaComparison;
+        }
+        // Nếu GPA bằng nhau, so sánh theo tên theo thứ tự tăng dần
+        return this.name.compareTo(other.name);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Student student = (Student) o;
+        return Float.compare(student.gpa, gpa) == 0 && name.equals(student.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, gpa);
+    }
+
+    @Override
+    public String toString() {
+        return name + " - " + gpa;
+    }
 }
