@@ -1,6 +1,10 @@
 // File: CustomerProgram.java
 import java.util.ArrayList;
 import java.util.List;
+import com.example.servingwebcontent.Data.Customer;
+
+
+//import com.example.servingwebcontent.Data.Customer;
 
 class CustomerManager {
     private List<Customer> customers = new ArrayList<>();
