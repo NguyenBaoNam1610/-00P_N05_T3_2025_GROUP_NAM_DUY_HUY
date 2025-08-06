@@ -1,3 +1,5 @@
+import java.util.List;
+
 public class Main {
     CustomerManager customerManager = new CustomerManager();
     RoomManager roomManager = new RoomManager();
@@ -22,12 +24,12 @@ public class Main {
     }
 
     public void showAllBookings() {
-        List<Booking> bookings = bookingsService.getAllBookings();
+        List<Booking> bookings = new BookingService().getAllBookings();
         if (bookings.isEmpty()) {
             System.out.println("Chưa có booking nào.");
             return;
         }
-        for (Boonking b : bookings) {
+        for (Booking b : bookings) {
             Customer c = customerManager.getCustomerById(b.C_id);
             Room r = roomManager.findRoomById(b.R_id);
             System.out.println("Khách:" + (c != null ? c.getName() : "Không tìm thấy") +
