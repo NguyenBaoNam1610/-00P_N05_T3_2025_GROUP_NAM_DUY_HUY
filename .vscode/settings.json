@@ -4,5 +4,6 @@
         "src",
         "preview"
     ],
-    "java.project.referencedLibraries": []
+    "java.project.referencedLibraries": [],
+    "java.compile.nullAnalysis.mode": "automatic"
 }
