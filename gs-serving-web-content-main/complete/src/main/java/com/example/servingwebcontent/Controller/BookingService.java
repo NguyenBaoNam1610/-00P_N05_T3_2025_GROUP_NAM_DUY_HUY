@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import com.example.servingwebcontent.Data.Booking;
 
 public class BookingService {
     private List<Booking> bookings = new ArrayList<>();

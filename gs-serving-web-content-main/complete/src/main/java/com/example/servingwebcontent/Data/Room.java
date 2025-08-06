@@ -1,8 +1,10 @@
-class Room {
-    int id;
-    String type;
-    double price;
-    boolean status;
+package com.example.servingwebcontent.Data;
+
+public class Room {
+    public int id;
+    public String type;
+    public double price;
+    public boolean status;
 
     public Room(int id, String type, double price, boolean status) {
         this.id = id;

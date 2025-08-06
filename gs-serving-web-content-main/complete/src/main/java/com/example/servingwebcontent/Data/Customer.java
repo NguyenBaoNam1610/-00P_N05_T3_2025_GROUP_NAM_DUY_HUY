@@ -1,4 +1,6 @@
-class Customer {
+package com.example.servingwebcontent.Data;
+
+public class Customer {
     private int id;
     private String name;
     private int age;
@@ -28,4 +30,5 @@ class Customer {
     public void setCccd(String cccd) { this.cccd = cccd; }
     public String getSdt() { return sdt; }
     public void setSdt(String sdt) { this.sdt = sdt; }
+    
 }
