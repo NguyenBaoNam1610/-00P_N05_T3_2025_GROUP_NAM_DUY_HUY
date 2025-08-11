@@ -1,4 +1,4 @@
-package com.example.servingwebcontent.Data;
+package com.example.servingwebcontent.Model;
 public class Booking {
     public int C_id;
     public int R_id;  

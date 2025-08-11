@@ -1,7 +1,8 @@
+package com.example.servingwebcontent.Controller;
 import java.util.List;
-import com.example.servingwebcontent.Data.Customer;
-import com.example.servingwebcontent.Data.Room;
-import com.example.servingwebcontent.Data.Booking;
+import com.example.servingwebcontent.Model.Customer;
+import com.example.servingwebcontent.Model.Room;
+import com.example.servingwebcontent.Model.Booking;
 //import com.example.servingwebcontent.Data.Customer;
 
 public class Main {

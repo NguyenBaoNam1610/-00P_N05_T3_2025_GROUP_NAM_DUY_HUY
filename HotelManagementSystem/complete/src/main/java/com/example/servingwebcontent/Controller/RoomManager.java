@@ -1,6 +1,7 @@
+package com.example.servingwebcontent.Controller;
 import java.util.ArrayList;
 import java.util.List;
-import com.example.servingwebcontent.Data.Room;
+import com.example.servingwebcontent.Model.Room;
 
 public class RoomManager {
     private List<Room> roomList = new ArrayList<>();

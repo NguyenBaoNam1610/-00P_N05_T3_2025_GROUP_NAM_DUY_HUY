@@ -1,7 +1,8 @@
+package com.example.servingwebcontent.Controller;
 // File: CustomerProgram.java
 import java.util.ArrayList;
 import java.util.List;
-import com.example.servingwebcontent.Data.Customer;
+import com.example.servingwebcontent.Model.Customer;
 
 
 //import com.example.servingwebcontent.Data.Customer;
