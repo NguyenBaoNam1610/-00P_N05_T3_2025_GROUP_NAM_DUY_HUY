@@ -15,43 +15,19 @@ import java.util.*;
  * Ghi chú:
  * - Dùng các CRUD/logic sẵn có trong Model (JDBC).
  * - Hiện chạy tuần tự; nếu muốn "gói" transaction 1 kết nối duy nhất, ta có thể
- *   nâng cấp sau.
+ * nâng cấp sau.
  */
 public class HotelCoreService {
 
-    /** DTO kết quả tổng hợp cho thầy/khách hàng xem (không dùng record để tránh phụ thuộc JDK) */
-    public static final class KetQuaDatPhong {
-        private final String maDatPhong;
-        private final String maHoaDon;
-        private final double tongTienPhong;
-        private final double tongTienDichVu;
-        private final double thue;
-        private final double giamGia;
-        private final double tongThanhToan;
-
-        public KetQuaDatPhong(String maDatPhong,
-                              String maHoaDon,
-                              double tongTienPhong,
-                              double tongTienDichVu,
-                              double thue,
-                              double giamGia,
-                              double tongThanhToan) {
-            this.maDatPhong = maDatPhong;
-            this.maHoaDon = maHoaDon;
-            this.tongTienPhong = tongTienPhong;
-            this.tongTienDichVu = tongTienDichVu;
-            this.thue = thue;
-            this.giamGia = giamGia;
-            this.tongThanhToan = tongThanhToan;
-        }
-
-        public String getMaDatPhong() { return maDatPhong; }
-        public String getMaHoaDon() { return maHoaDon; }
-        public double getTongTienPhong() { return tongTienPhong; }
-        public double getTongTienDichVu() { return tongTienDichVu; }
-        public double getThue() { return thue; }
-        public double getGiamGia() { return giamGia; }
-        public double getTongThanhToan() { return tongThanhToan; }
+    /** DTO kết quả tổng hợp cho thầy/khách hàng xem */
+    public record KetQuaDatPhong(
+            String maDatPhong,
+            String maHoaDon,
+            double tongTienPhong,
+            double tongTienDichVu,
+            double thue,
+            double giamGia,
+            double tongThanhToan) {
     }
 
     /**
@@ -76,7 +52,6 @@ public class HotelCoreService {
             Map<String, Integer> dichVuSoLuong,
             double giamGia,
             PaymentMethod phuongThuc) {
-
         // === 0) Validate input cơ bản ===
         if (dinhDanhKhach == null || dinhDanhKhach.isBlank())
             throw new IllegalArgumentException("Thiếu định danh khách");
@@ -101,6 +76,8 @@ public class HotelCoreService {
             throw new IllegalArgumentException("Vượt quá sức chứa phòng: " + p.getSoNguoiToiDa());
 
         // === 2) Đảm bảo phòng TRỐNG trong khoảng ngày ===
+        // Nếu dự án đã có DatPhong.isPhongTrong(maPhong, ngayNhan, ngayTra) thì dùng;
+        // nếu chưa, fallback bằng timPhongTrong
         boolean phongTrong;
         try {
             phongTrong = DatPhong.isPhongTrong(maPhong, ngayNhan, ngayTra);
@@ -134,11 +111,11 @@ public class HotelCoreService {
 
         // === 4) Thêm dịch vụ (nếu có) ===
         if (dichVuSoLuong != null && !dichVuSoLuong.isEmpty()) {
-            for (Map.Entry<String, Integer> e : dichVuSoLuong.entrySet()) {
+            for (var e : dichVuSoLuong.entrySet()) {
                 String maDv = e.getKey();
-                Integer soLuongObj = e.getValue();
-                int soLuong = (soLuongObj == null) ? 0 : soLuongObj;
-                if (soLuong <= 0) continue;
+                int soLuong = e.getValue() == null ? 0 : e.getValue();
+                if (soLuong <= 0)
+                    continue;
 
                 DichVu dv = DichVu.findById(maDv);
                 if (dv == null)
@@ -149,6 +126,7 @@ public class HotelCoreService {
                 if (ret == null || ret <= 0L) {
                     throw new RuntimeException("Không thêm được dịch vụ: " + maDv);
                 }
+
             }
         }
 
