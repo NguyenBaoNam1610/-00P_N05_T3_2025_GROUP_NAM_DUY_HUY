@@ -1,25 +1,44 @@
 package com.example.servingwebcontent.core;
 
+import com.example.servingwebcontent.controller.*;
+import com.example.servingwebcontent.controller.ChiTietDichVuController.AddRequest;
+import com.example.servingwebcontent.controller.HoaDonController.CreateInvoiceRequest;
 import com.example.servingwebcontent.model.*;
 
-import java.time.LocalDate;
-import java.util.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
-/**
- * Mục 5 – Phương thức hoạt động CHÍNH của ứng dụng:
- * - Kiểm tra phòng trống
- * - Tạo đặt phòng
- * - (Tuỳ chọn) Thêm dịch vụ
- * - Tính tiền & xuất hoá đơn
- *
- * Ghi chú:
- * - Dùng các CRUD/logic sẵn có trong Model (JDBC).
- * - Hiện chạy tuần tự; nếu muốn "gói" transaction 1 kết nối duy nhất, ta có thể
- *   nâng cấp sau.
- */
+import java.time.LocalDate;
+import java.util.Map;
+import java.util.UUID;
+
+@Service
 public class HotelCoreService {
 
-    /** DTO kết quả tổng hợp cho thầy/khách hàng xem (không dùng record để tránh phụ thuộc JDK) */
+    private final KhachHangController khachCtrl;
+    private final PhongKhachSanController phongCtrl;
+    private final DatPhongController datPhongCtrl;
+    private final ChiTietDichVuController ctdvCtrl;
+    private final HoaDonController hoaDonCtrl;
+    private final DichVuController dichVuCtrl;
+
+    public HotelCoreService(
+            KhachHangController khachCtrl,
+            PhongKhachSanController phongCtrl,
+            DatPhongController datPhongCtrl,
+            ChiTietDichVuController ctdvCtrl,
+            HoaDonController hoaDonCtrl,
+            DichVuController dichVuCtrl
+    ) {
+        this.khachCtrl = khachCtrl;
+        this.phongCtrl = phongCtrl;
+        this.datPhongCtrl = datPhongCtrl;
+        this.ctdvCtrl = ctdvCtrl;
+        this.hoaDonCtrl = hoaDonCtrl;
+        this.dichVuCtrl = dichVuCtrl;
+    }
+
+    // ====================== DTO kết quả ======================
     public static final class KetQuaDatPhong {
         private final String maDatPhong;
         private final String maHoaDon;
@@ -29,13 +48,9 @@ public class HotelCoreService {
         private final double giamGia;
         private final double tongThanhToan;
 
-        public KetQuaDatPhong(String maDatPhong,
-                              String maHoaDon,
-                              double tongTienPhong,
-                              double tongTienDichVu,
-                              double thue,
-                              double giamGia,
-                              double tongThanhToan) {
+        public KetQuaDatPhong(String maDatPhong, String maHoaDon,
+                              double tongTienPhong, double tongTienDichVu,
+                              double thue, double giamGia, double tongThanhToan) {
             this.maDatPhong = maDatPhong;
             this.maHoaDon = maHoaDon;
             this.tongTienPhong = tongTienPhong;
@@ -44,7 +59,6 @@ public class HotelCoreService {
             this.giamGia = giamGia;
             this.tongThanhToan = tongThanhToan;
         }
-
         public String getMaDatPhong() { return maDatPhong; }
         public String getMaHoaDon() { return maHoaDon; }
         public double getTongTienPhong() { return tongTienPhong; }
@@ -54,65 +68,42 @@ public class HotelCoreService {
         public double getTongThanhToan() { return tongThanhToan; }
     }
 
-    /**
-     * Orchestrator: ĐẶT PHÒNG + (DV) + XUẤT HOÁ ĐƠN
-     *
-     * @param dinhDanhKhach CCCD/Passport của khách (đã có trong bảng khach_hang)
-     * @param maPhong       mã phòng muốn đặt
-     * @param ngayNhan      ngày nhận (yyyy-MM-dd)
-     * @param ngayTra       ngày trả (phải sau ngày nhận)
-     * @param soKhach       số khách ở
-     * @param dichVuSoLuong map {maDichVu -> soLuong}; có thể null/empty
-     * @param giamGia       số tiền giảm giá (>= 0)
-     * @param phuongThuc    phương thức thanh toán (PaymentMethod)
-     * @return thông tin mã đặt phòng + mã hoá đơn + tổng tiền
-     */
-    public static KetQuaDatPhong datPhongVaThanhToan(
+    // ====================== 1) Core flow: đặt phòng + (DV) + hoá đơn ======================
+    public KetQuaDatPhong datPhongVaThanhToan(
             String dinhDanhKhach,
             String maPhong,
             LocalDate ngayNhan,
             LocalDate ngayTra,
             int soKhach,
-            Map<String, Integer> dichVuSoLuong,
+            Map<String,Integer> dichVuSoLuong,
             double giamGia,
-            PaymentMethod phuongThuc) {
-
-        // === 0) Validate input cơ bản ===
-        if (dinhDanhKhach == null || dinhDanhKhach.isBlank())
-            throw new IllegalArgumentException("Thiếu định danh khách");
-        if (maPhong == null || maPhong.isBlank())
-            throw new IllegalArgumentException("Thiếu mã phòng");
-        if (ngayNhan == null || ngayTra == null || !ngayTra.isAfter(ngayNhan))
-            throw new IllegalArgumentException("ngayTra phải sau ngayNhan");
-        if (soKhach <= 0)
-            throw new IllegalArgumentException("soKhach phải > 0");
-        if (giamGia < 0)
-            throw new IllegalArgumentException("giamGia không được âm");
-
-        // === 1) Kiểm tra khách & phòng tồn tại ===
-        KhachHang kh = KhachHang.findById(dinhDanhKhach);
-        if (kh == null)
+            PaymentMethod phuongThuc
+    ) {
+        // 1) Kiểm tra khách tồn tại (dùng controller)
+        var khRes = khachCtrl.getOne(dinhDanhKhach);
+        if (!khRes.getStatusCode().is2xxSuccessful() || khRes.getBody() == null) {
             throw new IllegalArgumentException("Khách hàng chưa tồn tại: " + dinhDanhKhach);
-
-        PhongKhachSan p = PhongKhachSan.findById(maPhong);
-        if (p == null)
-            throw new IllegalArgumentException("Phòng không tồn tại: " + maPhong);
-        if (soKhach > p.getSoNguoiToiDa())
-            throw new IllegalArgumentException("Vượt quá sức chứa phòng: " + p.getSoNguoiToiDa());
-
-        // === 2) Đảm bảo phòng TRỐNG trong khoảng ngày ===
-        boolean phongTrong;
-        try {
-            phongTrong = DatPhong.isPhongTrong(maPhong, ngayNhan, ngayTra);
-        } catch (Throwable ignore) {
-            // fallback: kiểm tra phòng có nằm trong danh sách phòng trống không
-            List<PhongKhachSan> ds = PhongKhachSan.timPhongTrong(ngayNhan, ngayTra, null, null);
-            phongTrong = ds.stream().anyMatch(r -> r.getMaPhong().equals(maPhong));
         }
-        if (!phongTrong)
-            throw new IllegalStateException("Phòng không trống trong khoảng ngày đã chọn");
 
-        // === 3) Tạo đặt phòng ===
+        // 2) Kiểm tra phòng tồn tại
+        var pRes = phongCtrl.one(maPhong);
+        var phong = pRes.getBody();
+        if (!pRes.getStatusCode().is2xxSuccessful() || phong == null) {
+            throw new IllegalArgumentException("Phòng không tồn tại: " + maPhong);
+        }
+        if (soKhach <= 0 || soKhach > phong.getSoNguoiToiDa()) {
+            throw new IllegalArgumentException("Số khách không hợp lệ (vượt sức chứa phòng)");
+        }
+
+        // 3) Kiểm tra phòng trống (dùng DatPhongController.timPhongTrong)
+        var timReq = new DatPhongController.TimPhongRequest(ngayNhan, ngayTra, soKhach, null);
+        var timRes = datPhongCtrl.timPhongTrong(timReq);
+        if (!timRes.getStatusCode().is2xxSuccessful()) {
+            throw new IllegalStateException("Lỗi kiểm tra phòng: " + timRes.getBody());
+        }
+        // có thể bỏ qua list trả về và rely vào isPhongTrong trong create dưới đây
+
+        // 4) Tạo đặt phòng
         String maDatPhong = "DP-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         DatPhong dp = new DatPhong(
                 maDatPhong,
@@ -121,55 +112,99 @@ public class HotelCoreService {
                 ngayNhan,
                 ngayTra,
                 soKhach,
-                BookingStatus.DA_DAT);
-        if (!DatPhong.insert(dp)) {
-            throw new RuntimeException("Không tạo được đặt phòng");
+                BookingStatus.DA_DAT
+        );
+        ResponseEntity<?> dpRes = datPhongCtrl.create(dp);
+        if (!dpRes.getStatusCode().is2xxSuccessful()) {
+            throw new IllegalStateException("Không thể tạo đặt phòng: " + dpRes.getBody());
         }
 
-        // (Tuỳ chọn) cập nhật trạng thái phòng “DA_DAT” cho dễ nhìn ở màn quản lý
-        try {
-            PhongKhachSan.updateStatus(maPhong, RoomStatus.DA_DAT);
-        } catch (Exception ignored) {
-        }
+        // (Tuỳ) đổi trạng thái phòng cho dễ quản trị
+        try { phongCtrl.updateStatus(maPhong, RoomStatus.DA_DAT.name()); } catch (Exception ignore) {}
 
-        // === 4) Thêm dịch vụ (nếu có) ===
+        // 5) Thêm dịch vụ (nếu có)
         if (dichVuSoLuong != null && !dichVuSoLuong.isEmpty()) {
-            for (Map.Entry<String, Integer> e : dichVuSoLuong.entrySet()) {
+            for (var e : dichVuSoLuong.entrySet()) {
                 String maDv = e.getKey();
-                Integer soLuongObj = e.getValue();
-                int soLuong = (soLuongObj == null) ? 0 : soLuongObj;
-                if (soLuong <= 0) continue;
+                int sl = e.getValue() == null ? 0 : e.getValue();
+                if (maDv == null || maDv.isBlank() || sl <= 0) continue;
 
-                DichVu dv = DichVu.findById(maDv);
-                if (dv == null)
+                // ensure dịch vụ tồn tại (gọi controller)
+                var dvRes = dichVuCtrl.one(maDv);
+                if (!dvRes.getStatusCode().is2xxSuccessful() || dvRes.getBody() == null) {
                     throw new IllegalArgumentException("Dịch vụ không tồn tại: " + maDv);
+                }
 
-                double thanhTien = dv.getGia() * soLuong;
-                Long ret = ChiTietDichVu.insert(new ChiTietDichVu(maDatPhong, maDv, soLuong, thanhTien));
-                if (ret == null || ret <= 0L) {
-                    throw new RuntimeException("Không thêm được dịch vụ: " + maDv);
+                // thêm dòng DV
+                var addReq = new AddRequest(maDv, sl);
+                var addRes = ctdvCtrl.addToBooking(maDatPhong, addReq);
+                if (!addRes.getStatusCode().is2xxSuccessful()) {
+                    throw new IllegalStateException("Không thể thêm dịch vụ " + maDv + ": " + addRes.getBody());
                 }
             }
         }
 
-        // === 5) Xuất hoá đơn từ đặt phòng ===
-        String maHoaDon = "HD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        boolean ok = HoaDon.taoVaLuuHoaDonTuBooking(maHoaDon, maDatPhong, giamGia, phuongThuc);
-        if (!ok)
-            throw new RuntimeException("Không tạo được hoá đơn");
-
-        // === 6) Đọc lại hoá đơn để trả kết quả tổng hợp ===
-        HoaDon hd = HoaDon.findById(maHoaDon);
-        if (hd == null)
-            throw new IllegalStateException("Không đọc được hoá đơn vừa tạo");
+        // 6) Tạo hoá đơn từ booking (dùng controller HoaDonController)
+        String phuongThucStr = (phuongThuc == null ? PaymentMethod.TIEN_MAT.name() : phuongThuc.name());
+        var createHdReq = new CreateInvoiceRequest(null, maDatPhong, giamGia, phuongThucStr);
+        var hdRes = hoaDonCtrl.createFromBooking(createHdReq);
+        if (!hdRes.getStatusCode().is2xxSuccessful() || !(hdRes.getBody() instanceof HoaDon hd)) {
+            throw new IllegalStateException("Không thể tạo hoá đơn: " + hdRes.getBody());
+        }
 
         return new KetQuaDatPhong(
                 maDatPhong,
-                maHoaDon,
-                hd.getTongTienPhong(),
-                hd.getTongTienDichVu(),
-                hd.getThue(),
-                hd.getGiamGia(),
-                hd.getTongThanhToan());
+                hd.getMaHoaDon(),
+                nz(hd.getTongTienPhong()),
+                nz(hd.getTongTienDichVu()),
+                nz(hd.getThue()),
+                nz(hd.getGiamGia()),
+                nz(hd.getTongThanhToan())
+        );
     }
+
+    // ====================== 2) Thêm phòng qua Controller ======================
+    public PhongKhachSan themPhong(String maPhong,
+                                   RoomType loaiPhong,
+                                   Double giaMoiDem,
+                                   RoomStatus tinhTrang,
+                                   Integer soNguoiToiDa,
+                                   String tienNghiKemTheo) {
+
+        PhongKhachSan p = new PhongKhachSan();
+        p.setMaPhong(maPhong);
+        p.setLoaiPhong(loaiPhong);
+        p.setGiaMoiDem(giaMoiDem == null ? 0.0 : giaMoiDem);
+        p.setTinhTrang(tinhTrang == null ? RoomStatus.TRONG : tinhTrang);
+        p.setSoNguoiToiDa(soNguoiToiDa == null ? 1 : soNguoiToiDa);
+        p.setTienNghiKemTheo(tienNghiKemTheo);
+
+        var res = phongCtrl.create(p);
+        if (!res.getStatusCode().is2xxSuccessful() || !(res.getBody() instanceof PhongKhachSan saved)) {
+            throw new IllegalStateException("Không thể tạo phòng: " + res.getBody());
+        }
+        return saved;
+    }
+
+    // ====================== 3) Thêm dịch vụ qua Controller ======================
+    public DichVu themDichVu(String maDichVu,
+                              String tenDichVu,
+                              Double gia,
+                              ServiceType loai) {
+
+        DichVu dv = new DichVu();
+        dv.setMaDichVu(maDichVu);
+        dv.setTenDichVu(tenDichVu);
+        dv.setGia(gia == null ? 0.0 : gia); // model dùng primitive double theo lỗi bạn báo
+        dv.setLoai(loai == null ? ServiceType.THEO_LAN : loai);
+
+        var res = dichVuCtrl.create(dv);
+        if (!res.getStatusCode().is2xxSuccessful() || !(res.getBody() instanceof DichVu saved)) {
+            throw new IllegalStateException("Không thể tạo dịch vụ: " + res.getBody());
+        }
+        return saved;
+    }
+
+    // ====================== Helpers ======================
+    private static double nz(Double d) { return d == null ? 0.0 : d; }
 }
