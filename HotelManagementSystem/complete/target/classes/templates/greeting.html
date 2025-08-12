@@ -10,35 +10,81 @@
 
   <style>
     :root{
-      --bg:#0f172a; --bg2:#111827; --card:#0b1220; --brand:#7c3aed; --text:#e5e7eb; --muted:#9ca3af; --radius:16px;
+      /* Light palette */
+      --bg:#f8fafc;           /* slate-50 */
+      --bg2:#eef2ff;          /* indigo-50 */
+      --surface:#ffffff;
+      --border:#e2e8f0;       /* slate-200 */
+      --brand:#7c3aed;        /* violet-600 */
+      --brand-weak:#ede9fe;   /* violet-100 */
+      --text:#0f172a;         /* slate-900 */
+      --muted:#475569;        /* slate-600 */
+      --head:#0b1324;
+      --radius:16px;
+      --shadow:0 10px 30px rgba(2,6,23,.08);
     }
-    body{ background: radial-gradient(1200px 600px at 20% -10%, #1f2937, transparent),
-                   radial-gradient(1200px 800px at 120% 10%, #0b1220, transparent),
-                   var(--bg); color: var(--text); }
-    .navbar{ background: linear-gradient(90deg, #111827, #0b1220); border-bottom: 1px solid rgba(255,255,255,.08); }
+    body{
+      background:
+        radial-gradient(1200px 600px at 20% -10%, var(--bg2), transparent),
+        radial-gradient(1200px 800px at 120% 10%, #eaf2ff, transparent),
+        var(--bg);
+      color: var(--text);
+    }
+    .navbar{
+      background: linear-gradient(90deg, #ffffffcc, #f8fafcdd);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+    }
+    .navbar .navbar-brand{ color: var(--head); }
     .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border: 1px solid rgba(255,255,255,.08); border-radius: var(--radius);
-      box-shadow: 0 20px 40px rgba(0,0,0,.35);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
     }
-    .form-control, .form-select{
-      background: rgba(255,255,255,.04); color: var(--text); border: 1px solid rgba(255,255,255,.12);
+    h5{ color: var(--head); }
+    .pill{
+      font-size:.75rem; padding:.25rem .6rem; border-radius:999px;
+      background: var(--brand-weak); color: #4c1d95; /* violet-900 */
+      border: 1px solid #ddd6fe;
     }
-    .btn-brand{ background: var(--brand); border: none; }
-    .btn-brand:hover{ filter: brightness(1.05); }
-    .btn-soft{ background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.35); color: #e9d5ff; }
-    .pill{ font-size:.75rem; padding:.2rem .5rem; border-radius:999px; background: rgba(255,255,255,.08);}
     .muted{ color: var(--muted); }
+
+    .form-control, .form-select{
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text);
+      transition: box-shadow .15s ease, border-color .15s ease;
+    }
+    .form-control:focus, .form-select:focus{
+      border-color: #c4b5fd; /* violet-300 */
+      box-shadow: 0 0 0 .2rem rgba(124,58,237,.15);
+    }
+
+    .btn-brand{
+      background: linear-gradient(180deg, #7c3aed, #6d28d9);
+      color: #fff; border: none; box-shadow: 0 6px 16px rgba(124,58,237,.25);
+    }
+    .btn-brand:hover{ filter: brightness(1.05); }
+    .btn-soft{
+      background: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe;
+    }
+    .btn-soft:hover{ background:#ede9fe; }
+
+    .btn-xs{ padding:.3rem .6rem; font-size:.82rem; border-radius:10px; }
+
     .table{ color: var(--text); }
-    .table thead th{ color: #cbd5e1; }
-    .table tbody tr{ background: transparent !important; }
-    .btn-xs{ padding:.2rem .5rem; font-size:.8rem; border-radius: 8px; }
+    .table thead th{
+      color:#334155; background:#f1f5f9; border-bottom: 1px solid var(--border);
+    }
+    .table tbody tr:hover{ background:#f8fafc; }
+    .table td, .table th{ border-color: var(--border) !important; }
   </style>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg">
   <div class="container">
-    <a class="navbar-brand fw-bold text-white" href="#">Hotel Dashboard</a>
+    <a class="navbar-brand fw-bold" href="#">Hotel Dashboard</a>
     <span class="pill ms-auto">Core Flow: Tìm phòng → Đặt → Dịch vụ → Hoá đơn</span>
   </div>
 </nav>
@@ -90,7 +136,7 @@
           </table>
         </div>
 
-        <hr class="my-4" style="opacity:.15">
+        <hr class="my-4" style="opacity:.5; border-color: var(--border)">
 
         <div class="d-flex align-items-center mb-3">
           <h5 class="mb-0">2) Tạo đặt phòng</h5>
@@ -202,7 +248,7 @@
   </div>
 </div>
 
-<!-- Toast đơn giản -->
+<!-- Toast -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1055">
   <div id="toast" class="toast text-bg-dark border-0" role="alert" data-bs-delay="2500">
     <div class="d-flex">
@@ -277,7 +323,7 @@
         <td>${c.maDichVu}</td>
         <td>${c.soLuong}</td>
         <td>${(c.thanhTien||0).toLocaleString('vi-VN')}</td>
-        <td><button class="btn btn-danger btn-xs" onclick="delCT(${c.id})">Xoá</button></td>
+        <td><button class="btn btn-outline-danger btn-xs" onclick="delCT(${c.id})">Xoá</button></td>
       </tr>
     `).join('');
   }
@@ -344,7 +390,10 @@
     if(!maDatPhong || !dinhDanhKhach || !maPhong || !ngayNhan || !ngayTra){
       notify('Thiếu trường bắt buộc'); return;
     }
-    if(new Date(tra) <= new Date(nhan)){ notify('Ngày trả phải sau ngày nhận'); return; }
+    /* FIX bug: dùng đúng biến ngày */
+    if(new Date(ngayTra) <= new Date(ngayNhan)){
+      notify('Ngày trả phải sau ngày nhận'); return;
+    }
 
     try{
       const dp = await API.taoDatPhong({ maDatPhong, dinhDanhKhach, maPhong, ngayNhan, ngayTra, soKhach });
