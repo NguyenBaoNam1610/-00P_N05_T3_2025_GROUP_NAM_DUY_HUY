@@ -21,8 +21,11 @@ public class DatPhongController {
         }
         RoomType loai = null;
         if (req.loaiPhong() != null) {
-            try { loai = RoomType.valueOf(req.loaiPhong()); }
-            catch (Exception e) { return ResponseEntity.badRequest().body("loaiPhong không hợp lệ"); }
+            try {
+                loai = RoomType.valueOf(req.loaiPhong());
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body("loaiPhong không hợp lệ");
+            }
         }
         List<PhongKhachSan> ds = PhongKhachSan.timPhongTrong(req.ngayNhan(), req.ngayTra(), req.soNguoi(), loai);
         return ResponseEntity.ok(ds);
@@ -58,20 +61,23 @@ public class DatPhongController {
         }
         // kiểm tra phòng trống (DatPhong.insert cũng sẽ kiểm tra lần nữa)
         boolean trong = DatPhong.isPhongTrong(dp.getMaPhong(), dp.getNgayNhan(), dp.getNgayTra());
-        if (!trong) return ResponseEntity.status(HttpStatus.CONFLICT).body("Phòng không trống trong khoảng ngày");
+        if (!trong)
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Phòng không trống trong khoảng ngày");
 
-        if (dp.getTrangThai() == null) dp.setTrangThai(BookingStatus.DA_DAT);
+        if (dp.getTrangThai() == null)
+            dp.setTrangThai(BookingStatus.DA_DAT);
 
         boolean ok = DatPhong.insert(dp);
         return ok ? ResponseEntity.status(HttpStatus.CREATED).body(dp)
-                  : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Không thể tạo đặt phòng");
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Không thể tạo đặt phòng");
     }
 
     // ===== SỬA BOOKING =====
     @PutMapping("/{maDP}")
     public ResponseEntity<?> update(@PathVariable("maDP") String maDP, @RequestBody DatPhong dp) {
         DatPhong old = DatPhong.findById(maDP);
-        if (old == null) return ResponseEntity.notFound().build();
+        if (old == null)
+            return ResponseEntity.notFound().build();
 
         // khoá chính theo path
         dp.setMaDatPhong(maDP);
@@ -81,7 +87,7 @@ public class DatPhongController {
 
         boolean ok = DatPhong.update(dp); // bên trong có kiểm tra phòng trống khi đổi ngày/phòng
         return ok ? ResponseEntity.ok(dp)
-                  : ResponseEntity.status(HttpStatus.CONFLICT).body("Phòng không trống hoặc lỗi cập nhật");
+                : ResponseEntity.status(HttpStatus.CONFLICT).body("Phòng không trống hoặc lỗi cập nhật");
     }
 
     // ===== HỦY / CHECKIN / CHECKOUT =====
@@ -103,6 +109,14 @@ public class DatPhongController {
         return ok ? ResponseEntity.ok().build() : ResponseEntity.badRequest().body("Check-out thất bại");
     }
 
+    @DeleteMapping("/{maDP}")
+    public ResponseEntity<?> delete(@PathVariable String maDP) {
+        boolean ok = DatPhong.deleteById(maDP); // cần có hàm này trong Model DatPhong
+        return ok ? ResponseEntity.noContent().build()
+                : ResponseEntity.badRequest().body("Không thể xoá đặt phòng");
+    }
+
     // ===== DTO yêu cầu tìm phòng =====
-    public record TimPhongRequest(LocalDate ngayNhan, LocalDate ngayTra, Integer soNguoi, String loaiPhong) {}
+    public record TimPhongRequest(LocalDate ngayNhan, LocalDate ngayTra, Integer soNguoi, String loaiPhong) {
+    }
 }
