@@ -182,7 +182,7 @@ public class BaoCaoController {
                            ten_dich_vu,
                            SUM(so_luong)   AS so_luong,
                            SUM(doanh_thu)  AS doanh_thu
-                    FROM ledger_ctdv
+                    FROM ledger_dich_vu
                     WHERE ngay_thanh_toan >= ? AND ngay_thanh_toan < ?
                     GROUP BY ma_dich_vu, ten_dich_vu
                     ORDER BY doanh_thu DESC
