@@ -34,25 +34,25 @@ public class BaoCaoController {
     @GetMapping("/doanh-thu")
     public ResponseEntity<?> doanhThuTheoThang(@RequestParam int year, @RequestParam int month) {
         LocalDate start = YearMonth.of(year, month).atDay(1);
-        LocalDate end   = start.plusMonths(1); // [start, end)
+        LocalDate end = start.plusMonths(1); // [start, end)
 
         String sql = """
-            SELECT
-              COALESCE(SUM(tong_thanh_toan),0)   AS tong,
-              COALESCE(SUM(tong_tien_phong),0)   AS phong,
-              COALESCE(SUM(tong_tien_dich_vu),0) AS dv,
-              COALESCE(SUM(thue),0)              AS thue,
-              COALESCE(SUM(giam_gia),0)          AS giam
-            FROM hoa_don
-            WHERE ngay_thanh_toan >= ? AND ngay_thanh_toan < ?
-            """;
+                SELECT
+                  COALESCE(SUM(tong_thanh_toan),0)   AS tong,
+                  COALESCE(SUM(tong_tien_phong),0)   AS phong,
+                  COALESCE(SUM(tong_tien_dich_vu),0) AS dv,
+                  COALESCE(SUM(thue),0)              AS thue,
+                  COALESCE(SUM(giam_gia),0)          AS giam
+                FROM ledger_doanh_thu
+                WHERE ngay_thanh_toan >= ? AND ngay_thanh_toan < ?
+                """;
 
-        Map<String,Object> res = new LinkedHashMap<>();
+        Map<String, Object> res = new LinkedHashMap<>();
         res.put("year", year);
         res.put("month", month);
 
         try (Connection cn = aivenConnection.getConnection();
-             PreparedStatement ps = cn.prepareStatement(sql)) {
+                PreparedStatement ps = cn.prepareStatement(sql)) {
 
             ps.setTimestamp(1, Timestamp.valueOf(start.atStartOfDay()));
             ps.setTimestamp(2, Timestamp.valueOf(end.atStartOfDay()));
@@ -77,34 +77,36 @@ public class BaoCaoController {
     public ResponseEntity<?> congSuatPhong(@RequestParam int year, @RequestParam int month) {
         YearMonth ym = YearMonth.of(year, month);
         LocalDate start = ym.atDay(1);
-        LocalDate end   = start.plusMonths(1); // [start, end)
+        LocalDate end = start.plusMonths(1); // [start, end)
         int daysInMonth = ym.lengthOfMonth();
 
-        Map<String,Object> res = new LinkedHashMap<>();
+        Map<String, Object> res = new LinkedHashMap<>();
         res.put("year", year);
         res.put("month", month);
         res.put("daysInMonth", daysInMonth);
 
         String sqlCountRooms = "SELECT COUNT(*) FROM phong_khach_san";
         String sqlBookedNights = """
-            SELECT COALESCE(SUM(GREATEST(0, DATEDIFF(LEAST(d.ngay_tra, ?), GREATEST(d.ngay_nhan, ?)))), 0) AS nights
-            FROM dat_phong d
-            WHERE d.trang_thai IN ('DA_DAT','DANG_O','DA_TRA_PHONG')
-            """;
+                  SELECT COALESCE(SUM(GREATEST(0,
+                           DATEDIFF(LEAST(ld.ngay_tra, ?), GREATEST(ld.ngay_nhan, ?))
+                         )), 0) AS nights
+                  FROM ledger_doanh_thu ld
+                """;
         String sqlBookedNightsByType = """
-            SELECT p.loai_phong,
-                   COALESCE(SUM(GREATEST(0, DATEDIFF(LEAST(d.ngay_tra, ?), GREATEST(d.ngay_nhan, ?)))), 0) AS nights
-            FROM dat_phong d
-            JOIN phong_khach_san p ON d.ma_phong = p.ma_phong
-            WHERE d.trang_thai IN ('DA_DAT','DANG_O','DA_TRA_PHONG')
-            GROUP BY p.loai_phong
-            """;
+                  SELECT p.loai_phong,
+                         COALESCE(SUM(GREATEST(0,
+                           DATEDIFF(LEAST(ld.ngay_tra, ?), GREATEST(ld.ngay_nhan, ?))
+                         )), 0) AS nights
+                  FROM ledger_doanh_thu ld
+                  JOIN phong_khach_san p ON ld.ma_phong = p.ma_phong
+                  GROUP BY p.loai_phong
+                """;
         String sqlRoomCountByType = "SELECT loai_phong, COUNT(*) AS cnt FROM phong_khach_san GROUP BY loai_phong";
 
         try (Connection cn = aivenConnection.getConnection()) {
             int roomCount;
             try (PreparedStatement ps = cn.prepareStatement(sqlCountRooms);
-                 ResultSet rs = ps.executeQuery()) {
+                    ResultSet rs = ps.executeQuery()) {
                 rs.next();
                 roomCount = rs.getInt(1);
             }
@@ -125,13 +127,13 @@ public class BaoCaoController {
             // Theo loại phòng
             Map<String, Integer> roomByType = new HashMap<>();
             try (PreparedStatement ps = cn.prepareStatement(sqlRoomCountByType);
-                 ResultSet rs = ps.executeQuery()) {
+                    ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     roomByType.put(rs.getString("loai_phong"), rs.getInt("cnt"));
                 }
             }
 
-            List<Map<String,Object>> perType = new ArrayList<>();
+            List<Map<String, Object>> perType = new ArrayList<>();
             try (PreparedStatement ps = cn.prepareStatement(sqlBookedNightsByType)) {
                 ps.setDate(1, Date.valueOf(end));
                 ps.setDate(2, Date.valueOf(start));
@@ -143,7 +145,7 @@ public class BaoCaoController {
                         long totalNightsType = (long) countRoomType * daysInMonth;
                         double occType = totalNightsType == 0 ? 0.0 : (double) nights / totalNightsType;
 
-                        Map<String,Object> row = new LinkedHashMap<>();
+                        Map<String, Object> row = new LinkedHashMap<>();
                         row.put("loaiPhong", loai);
                         row.put("soPhong", countRoomType);
                         row.put("nightsBooked", nights);
@@ -170,37 +172,34 @@ public class BaoCaoController {
     // GET /api/bao-cao/dich-vu-ban-chay?year=2025&month=8&limit=5
     @GetMapping("/dich-vu-ban-chay")
     public ResponseEntity<?> dichVuBanChay(@RequestParam int year,
-                                           @RequestParam int month,
-                                           @RequestParam(required = false, defaultValue = "5") int limit) {
+            @RequestParam int month,
+            @RequestParam(required = false, defaultValue = "5") int limit) {
         LocalDate start = YearMonth.of(year, month).atDay(1);
-        LocalDate end   = start.plusMonths(1); // [start, end)
+        LocalDate end = start.plusMonths(1);
 
         String sql = """
-            SELECT c.ma_dich_vu,
-                   dv.ten_dich_vu,
-                   SUM(c.so_luong)  AS so_luong,
-                   SUM(c.thanh_tien) AS doanh_thu
-            FROM chi_tiet_dich_vu c
-            JOIN dat_phong d  ON c.ma_dat_phong = d.ma_dat_phong
-            JOIN dich_vu dv   ON c.ma_dich_vu   = dv.ma_dich_vu
-            WHERE d.trang_thai <> 'HUY'
-              AND NOT (? <= d.ngay_nhan OR ? >= d.ngay_tra) -- overlap với tháng
-            GROUP BY c.ma_dich_vu, dv.ten_dich_vu
-            ORDER BY doanh_thu DESC
-            LIMIT ?
-            """;
+                    SELECT ma_dich_vu,
+                           ten_dich_vu,
+                           SUM(so_luong)   AS so_luong,
+                           SUM(doanh_thu)  AS doanh_thu
+                    FROM ledger_ctdv
+                    WHERE ngay_thanh_toan >= ? AND ngay_thanh_toan < ?
+                    GROUP BY ma_dich_vu, ten_dich_vu
+                    ORDER BY doanh_thu DESC
+                    LIMIT ?
+                """;
 
-        List<Map<String,Object>> list = new ArrayList<>();
+        List<Map<String, Object>> list = new ArrayList<>();
         try (Connection cn = aivenConnection.getConnection();
-             PreparedStatement ps = cn.prepareStatement(sql)) {
+                PreparedStatement ps = cn.prepareStatement(sql)) {
 
-            ps.setDate(1, Date.valueOf(end));
-            ps.setDate(2, Date.valueOf(start));
+            ps.setTimestamp(1, Timestamp.valueOf(start.atStartOfDay()));
+            ps.setTimestamp(2, Timestamp.valueOf(end.atStartOfDay()));
             ps.setInt(3, Math.max(1, limit));
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Map<String,Object> row = new LinkedHashMap<>();
+                    Map<String, Object> row = new LinkedHashMap<>();
                     row.put("maDichVu", rs.getString("ma_dich_vu"));
                     row.put("tenDichVu", rs.getString("ten_dich_vu"));
                     row.put("soLuong", rs.getLong("so_luong"));
@@ -213,4 +212,5 @@ public class BaoCaoController {
         }
         return ResponseEntity.ok(list);
     }
+
 }
