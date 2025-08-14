@@ -21,7 +21,8 @@ EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app/app.jar",
   "--server.address=0.0.0.0",
   "--server.port=${PORT}",
-  "--spring.datasource.url=${DB_URL}",
-  "--spring.datasource.username=${DB_USER}",
-  "--spring.datasource.password=${DB_PASS}"
+  "--spring.datasource.url=jdbc:mysql://mysql-46dedf8-duy-e77d.b.aivencloud.com:22056/defaultdb?sslMode=REQUIRED",
+  "--spring.datasource.username=avnadmin",
+  "--spring.datasource.password=AVNS_8MUOfbvalIaMvNntLGp"
 ]
+
