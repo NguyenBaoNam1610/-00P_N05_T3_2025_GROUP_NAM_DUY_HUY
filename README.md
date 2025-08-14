@@ -120,16 +120,16 @@ mvn spring-boot:run
 
 ## 🖥️ Giao diện
 - **Navbar** cố định phía trên.
-- Layout trang chính gồm **3 khối**: 1 khối trung tâm lớn và **2 ô phía dưới** nhỏ hơn; mỗi ô có nút hành động nhỏ (shortcuts).
+- Layout trang chính gồm : 1 khối trung tâm lớn và các ô phía dưới nhỏ hơn; mỗi ô có nút hành động nhỏ (shortcuts).
 - Sử dụng **Bootstrap** cho bố cục & components, **Chart.js** cho biểu đồ.
 - File tham chiếu: `src/main/resources/templates/coreflow.html` (map từ route `/`).
-
+### Ảnh giao diện
+![Khung chính](docs/img/anhgiaodien1.png)
+![Chức năng con](docs/img/anhgiaodien2.png)
+![Báo cáo](docs/img/anhgiaodien3.png)
 ---
 
 ## 🗂️ REST API (tóm tắt các đầu mút chính)
-
-> Gốc API: `/api`  
-> (Tên tham số và body có thể ràng buộc qua DTO; nên dùng `Content-Type: application/json`)
 
 ### 👤 Khách hàng (`/api/khach`)
 - `GET /api/khach` – danh sách
@@ -181,5 +181,18 @@ mvn test
 #kết quả
 ```
 ![Tests passing](docs/img/tests-pass.png)
+Mã nguồn liên quan: `src/main/java/.../config/GlobalExceptionHandler.java` + `cách file test trong src/test`
+
+## 📑Bảng tiêu chí
+
+| Tiêu chí                         | Trạng thái | Minh chứng                               |
+| -------------------------------- | ---------- | ---------------------------------------- |
+| MVC + Test                       | ✓          | Cấu trúc + `@WebMvcTest` + ảnh test pass |
+| UML Class + ≥5 Activity          | ✓          | Mục “📐 UML & Activity Diagrams”         |
+| CRUD ≥3 đối tượng                | ✓          | Khách/Phòng/Đặt phòng/DV/Hóa đơn         |
+| Quy trình cốt lõi                | ✓          | Activity + REST ví dụ/curl               |
+| Giao diện                        | ✓          | Mục "🖥️ Giao diện"                     |
+| Kết nối MySQL (cloud/local)      | ✓          |  Mã nguồn liên quan: `src/main/java/.../database/aivenConnection.java` + `src/main/resources/application.properties`          |
+
 
 
