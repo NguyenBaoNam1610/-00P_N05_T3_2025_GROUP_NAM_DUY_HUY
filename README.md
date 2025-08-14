@@ -29,19 +29,28 @@ Controller (REST + View)  -->  Service (HotelCoreService, ...)
 
 **Thư mục chính**
 ```
-HotelManagementSystem/
-└─ complete/
-   ├─ src/main/java/com/example/servingwebcontent/
-   │  ├─ controller/        # REST controllers + UI controller
-   │  ├─ model/             # Models, DTOs, Enums
-   │  ├─ service/           # HotelCoreService (orchestration)
-   │  ├─ exception/         # GlobalExceptionHandler
-   │  └─ database/          # aivenConnection
-   ├─ src/main/resources/
-   │  ├─ templates/         # Thymeleaf (coreflow.html)
-   │  └─ application.properties
-   └─ pom.xml
+HotelManagementSystem/complete/
+  pom.xml
+  src/
+    main/java/com/example/servingwebcontent/
+      ServingWebContentApplication.java            // main
+      CoreFlowUIController.java                    // điều hướng UI -> coreflow.html
+      config/GlobalExceptionHandler.java           // @RestControllerAdvice
+      database/aivenConnection.java                // DataSource -> Connection (HikariCP)
+      core/HotelCoreService.java                   // dịch vụ điều phối luồng nghiệp vụ
+      controller/                                  // 8 controller REST (xem mục 5)
+      model/                                       // 11 model + 5 enum (xem mục 4)
+    main/resources/
+      application.properties                       // cấu hình DB (lộ secret - lưu ý!)
+      templates/coreflow.html                      // trang chính UI
+      static/index.html                            // trang index mẫu
+      certs/aiven-ca.pem                           // CA (hiện chưa thấy sử dụng)
+    test/java/com/example/servingwebcontent/
+      ...ControllerTest.java                       // 6 lớp @WebMvcTest
 ```
+### Cấu hình /dev & IDE
+- .devcontainer/devcontainer.json: cài OpenJDK 17 + Maven sau khi tạo container (Codespaces).
+- .vscode/settings.json: cấu hình Java source path & build.
 ## 📐 UML & Activity Diagrams
 > File gốc: `docs/diagrams/`
 
